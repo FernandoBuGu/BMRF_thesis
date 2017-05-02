@@ -6,7 +6,7 @@ Folders "R" and "reference_implementation_yiannis_kourmpetis" are from https://g
 
 For validation, the test is a portion of GO terms for which all proteins except a minimum are masked. 
 
-Results.txt (open in R) shows results in 100 experiments. The parameters that I have changed are:
+Results.txt (open in R) shows results in 100 experiments. For each, I average over 10 replicates. The parameters that I have changed are:
 minGOsize (also a parameter in code https://github.com/jwbargsten/bmrf);
 Whether only Go terms with experimental evidence scores are considered ("1" if so, "0" otherwise);
 Whether only Go terms related to biological processes are considered ("1" if so, "0" otherwise);
