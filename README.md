@@ -1,12 +1,12 @@
 # Fernando_BMRF_thesis
 Protein function prediction
 
-In this repository the code to calculate AUC from code in https://github.com/jwbargsten/bmrf 
+Code to calculate AUC from code in https://github.com/jwbargsten/bmrf 
 Folders "R" and "reference_implementation_yiannis_kourmpetis" are from https://github.com/jwbargsten/bmrf.
 
 For validation, the test is a portion of GO terms for which all proteins except a minimum are masked. 
 
-Results.txt shows results in 100 experiments. The parameters that I have changed are:
+Results.txt (open in R) shows results in 100 experiments. The parameters that I have changed are:
 minGOsize (also a parameter in code https://github.com/jwbargsten/bmrf)
 Whether only Go terms with experimental evidence scores are considered ("1" if so, "0" otherwise)
 Whether only Go terms related to biological processes are considered ("1" if so, "0" otherwise)
