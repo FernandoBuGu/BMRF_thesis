@@ -17,11 +17,11 @@ The size of the network (#conexions):
   complet:all subsets and integrated together (111,390 after removing duplicates)
   
  Results that I considered (columns in Results.txt):
- mean AUC among all GO terms for which prediction was possible within those in the train set.
- GOs with AUC: # GO terms for which prediction was possible within those in the train set.
- sd_AUCs: sdeviation
- no.go.above.AUC80. # GO terms for which AUC>80%
- no.unnanotated.prots. #labels that were not included in the train set.
- total.prots in the network
+ mean AUC among all GO terms for which prediction was possible within those in the train set;
+ GOs with AUC: # GO terms for which prediction was possible within those in the train set;
+ sd_AUCs: sdeviation;
+ no.go.above.AUC80. # GO terms for which AUC>80%;
+ no.unnanotated.prots. #labels that were not included in the train set;
+ total.prots in the network;
  total.predicted.go. #GO terms for which prediction was made using bmrf.R. Only for those in test set, AUC was computed.
  
