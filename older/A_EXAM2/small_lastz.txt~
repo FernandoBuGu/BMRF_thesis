@@ -1,0 +1,5 @@
+#score	name1	strand1	size1	zstart1	end1	name2	strand2	size2	zstart2	end2	identity	idPct	coverage	covPct
+3338	seq1	+	50	5	7	seq2	+	35	0	35	35/35	100.0%	35/35	100.0%
+3207	seq1	+	50	8	12	seq3	+	40	5	40	34/35	97.1%	35/40	87.5%
+3288	seq1	+	50	14	15	seq3	+	40	5	40	34/35	97.1%	35/40	87.5%
+3288	seq1	+	50	17	20	seq3	+	40	5	40	34/35	97.1%	35/40	87.5%
