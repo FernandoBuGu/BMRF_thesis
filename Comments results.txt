@@ -1,0 +1,13 @@
+Highest average AUC was (0.76), lower than (0.81) in paper plos-one and than with ppi data (0.82) using previous code.
+
+Some remarks:
+Results are better when the proportion of GOs in the test set is small (20% vs 50%).
+Including only (biological processes) GOs seems to improve the performance
+In large networks, including in train GOs terms others than those with EES, seems to improve the performance; whereas in small networks, the opposites seems true (see results S2 and S3)
+High threshold of minGOsize is often better
+When the number of conexions was 10973 (very small network), an AUC of 0.71 was achieved, although in that case only 3 GO terms were used to compute AUC. For networks of ~26000 conexions, an AUC of ~0.68 was achieved for a reasonable number of GOs.    
+
+Conclussions:
+Performance does not seem to be high enough how to obtain good results in smaller networks.
+
+
