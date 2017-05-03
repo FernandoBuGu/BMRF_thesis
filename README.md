@@ -8,8 +8,8 @@ For validation, the test is a portion of GO terms for which all proteins except 
 
 Results.txt (open in R) shows results in 100 experiments. For each, I average over 10 replicates. The parameters that I have changed are:
 minGOsize (also a parameter in code https://github.com/jwbargsten/bmrf);
-Whether only Go terms with experimental evidence scores are considered ("1" if so, "0" otherwise);
-Whether only Go terms related to biological processes are considered ("1" if so, "0" otherwise);
+Whether only GO terms related to biological processes are considered ("1" if so, "0" otherwise);
+Whether only GO terms with experimental evidence scores are considered ("1" if so, "0" otherwise);
 The portion of GO terms to be masked to minGOsize;
 The size of the network (#conexions):
   S1 (10973), S2 (26879), S3 (26774), S4 (64519);
