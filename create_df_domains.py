@@ -24,14 +24,9 @@ for i in allCodesR:
     except:
         pass
     D[i] = u
-#print(D)
-
-
-#read_dictionary = np.load('my_file.npy').item()
-#print(read_dictionary)
 
 df = pd.DataFrame.from_dict(D, orient='index')
-#df.to_csv("domains_no_argv")
+
 
 
 
