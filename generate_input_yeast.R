@@ -7,7 +7,10 @@
 	#uniprot codes: http://www.uniprot.org/docs/yeast: (saveas)-> yeast.txt (gedit,calc)-> Uniprot_calc.txt
 
 
-install.packages<-c("plyr","reshape","gsubfn","AUC","parallel","pbapply")
+x<-c("plyr","reshape","gsubfn","AUC","parallel","pbapply","ROCR","glmnet","xts","brglm","mvtnorm")
+lapply(x, install.packages)
+lapply(x, require, character.only = TRUE)
+
 
 #Combine coexpression networks
 filenames <- list.files(path="path_to_txt_files", full.names=TRUE)
