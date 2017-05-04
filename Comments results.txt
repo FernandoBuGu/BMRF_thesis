@@ -9,11 +9,12 @@ When the number of conexions was 10973 (very small network), an AUC of 0.71 was 
 
 Conclussions:
 Performance does not seem to be high enough how to obtain good results in smaller networks.
+In the plots folder, it can be seen that GO terms whose lables have an average of 300 conexions in the network tend to have AUC>80%, although there are other factors involved. 
 
 
 To investigate why some GO terms have lower AUC, I looked at the # of conexions of their corresponding proteins in the network. 
 For instance (in most experiments), we can find the following:
-The average # of conexions per label in GO terms with <80%AUC was 197.87 (labels in test), 187.53 (all labels) vs  290 and 331 in GOs above 80. 
+The average # of conexions per label in GO terms with <80%AUC was 197.87 (labels in test), 187.53 (all labels) vs  290 and 331 in GOs above 80. (this is related to the plots).
 In other experiment: 211.306 and 200.5778 vs 446.2463 and 360.516
 
 
