@@ -1,4 +1,5 @@
-Highest average AUC was (0.76), lower than (0.81) in paper plos-one and than with ppi data (0.82) using previous code. AUC using ppi data with current code was lower than for expression data (see "results.txt")
+Highest average AUC was (0.76), lower than (0.81) in paper plos-one and than with ppi data (0.82) using previous code. The most likelly reason for that difference is the way in which AUC is computed. We should discuss the approach that I chose.
+AUC using ppi data with current code was lower than for expression data (see "results.txt")
 
 Some remarks:
 Average AUC is higher when the proportion of GOs in the test set is small (20% vs 50%).
