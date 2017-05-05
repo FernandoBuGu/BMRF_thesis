@@ -14,7 +14,7 @@ The portion of GO terms to be masked to minGOsize;
 The size of the network (#conexions):
   S1 (10,973), S2 (26,879), S3 (26,774), S4 (64,519);
   Int: "integrated network" (242,504);
-  complet:all subsets and integrated together (111,390 after removing duplicates)
+  complet:all subsets and integrated together (598,194)
   ppi data from old code (401,820)
   
  Results that I considered (columns in Results.txt):
