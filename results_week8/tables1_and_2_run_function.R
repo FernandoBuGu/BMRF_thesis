@@ -35,6 +35,7 @@ U = which(u == 0);
 #sample 50 go
 set.seed(123)
 GO50<-sample(colnames(L),50)
+write.table(GO50,file="GO50",sep="\t", col.names = F, row.names = F, quote = F)
 L<-L[,colnames(L) %in% GO50]
 
 
