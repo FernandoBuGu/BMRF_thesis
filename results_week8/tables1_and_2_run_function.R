@@ -1,6 +1,6 @@
 setwd("/home/bueno002/From_gitHub/reference_implementation_yiannis_kourmpetis")
 FILEnet="../large_coex/big_topless.tsv"		#all coexpression data from yeasy combined
-FILEann="../large_coex/big_go.tsv"
+FILEann="../large_coex/small_up"
 FILEclust="../large_coex/big_ipr_labels.tsv"
 out="../large_coex/ouT"
 minGOsize=20	#as in test from Kourmpetis
@@ -102,4 +102,4 @@ AUCs<-function(L) {
 
 
 library(pbapply)
-w<-pbreplicate(15, AUCs(L)) #call the function 15 times
+w<-pbreplicate(5, AUCs(L)) #call the function 15 times
