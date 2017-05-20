@@ -69,7 +69,13 @@ GO <- data.frame(GO$V5,GO$V7,GO$V9,GO$V11)
 colnames(GO) <- c("go", "evid", "term","label")   
 GO$label <- sub('(?<=\\|).*$', '', GO$label, perl=TRUE)
 GO$label<-gsubfn(".", list("|" = ""), GO$label)
-write.table(GO,file="GO_general.txt",sep="\t", col.names = T, row.names = F, quote = T)
+dim(GO)
+GO2<-GO[!(is.na(GO$label) | GO$label==""), ]
+DF<-read.table("DF")
+colnames(DF)[1]<-"label"
+GO2<-GO2[GO2$label %in% DF$label,]
+GO2<-unique(GO2)
+write.table(GO2,file="GO_general.txt",sep="\t", col.names = T, row.names = F, quote = T)
 
 
 
