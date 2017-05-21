@@ -66,7 +66,7 @@ for (j in 1:length(unlist(fldsm1[1]))) {
 }
 prots_test <- sample(prots_test)
 name<-names(prots_test)
-a_test<-rep(1,length(prots_test))	
+#a_test<-rep("WHAT?",length(prots_test))	
 names(a_test)<-name
 train<-a[!names(a) %in% names(prots_test)]	
 Lsingle2<-append(train,prots_test)
