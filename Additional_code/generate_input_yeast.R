@@ -7,7 +7,7 @@
 	#uniprot codes: http://www.uniprot.org/docs/yeast: (saveas)-> yeast.txt (gedit,calc)-> Uniprot_calc.txt
 
 
-x<-c("plyr","reshape","gsubfn","AUC","parallel","pbapply","ROCR","glmnet","xts","brglm","mvtnorm")
+x<-c("plyr","reshape","gsubfn","AUC","parallel","pbapply","ROCR","glmnet","xts","brglm","mvtnorm","caret")
 lapply(x, install.packages)
 lapply(x, require, character.only = TRUE)
 
