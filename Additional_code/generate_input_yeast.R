@@ -76,6 +76,7 @@ colnames(DF)[1]<-"label"
 GO2<-GO2[GO2$label %in% DF$label,]
 GO2<-unique(GO2)
 write.table(GO2,file="GO_general.txt",sep="\t", col.names = T, row.names = F, quote = T)
+#Continue in generate_GOfiles_uppropap.R
 
 
 
