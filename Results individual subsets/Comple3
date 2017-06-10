@@ -1,7 +1,0 @@
-"mean_AUCs"	"GOs_with_AUC"	"sd_AUCs"	"no.go.above.AUC80"	"no.unnanotated.prots"	"total.prots"	"total.predicted.go"
-"40-0-0-0.5-complet"	0.76	54.6	0.13	19.9	3	5760	138.8
-"55-1-0-0.2-complet"	0.76	9.8	0.12	3.3	10.1	5760	65.9
-"55-0-0-0.2-complet"	0.75	25.2	0.14	8.1	3	5760	169
-"55-0-1-0.2-complet"	0.74	10.9	0.13	3.4	507	5760	55.9
-"55-0-0-0.5-complet"	0.68	51.7	NA	11	3	5760	150.3
-"55-1-1-0.5-complet"	0.64	7	0.19	1.6	1297.1	5760	15
