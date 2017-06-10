@@ -1,9 +1,0 @@
-"mean_AUCs"	"GOs_with_AUC"	"sd_AUCs"	"no.go.above.AUC80"	"no.unnanotated.prots"	"total.prots"	"total.predicted.go"
-"15-TRUE-TRUE-0.2-ppi"	0.53	2.9	0.06	0	3066.8	5437	15.9
-"25-TRUE-TRUE-0.2-ppi"	0.57	3	0.06	0	2861.4	5437	16
-"5-TRUE-TRUE-0.2-ppi"	0.51	2.9	0.08	0	2977.1	5437	15.9
-"20-FALSE-FALSE-0.2-ppi"	0.56	3.2	0.07	0	1328	5437	36
-"15-FALSE-FALSE-0.2-ppi"	0.56	2.8	NA	0	1328	5437	36
-"5-FALSE-FALSE-0.2-ppi"	0.52	3.8	0.07	0	1328	5437	36.9
-"20-FALSE-FALSE-0.5-ppi"	0.58	8.5	0.09	0	1328	5437	35.9
-"15-FALSE-FALSE-0.5-ppi"	0.58	7.2	0.09	0.1	1328	5437	35.6
