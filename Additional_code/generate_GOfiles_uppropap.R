@@ -1,5 +1,6 @@
 source("https://bioconductor.org/biocLite.R")
 biocLite("GO.db")
+require("igraph")
 
 #generate files uppropagate small
 go_file<-read.table("GO_general.txt",header=T)
