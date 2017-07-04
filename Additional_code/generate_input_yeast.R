@@ -4,7 +4,7 @@
 #Input data for yeast comes from:
 	#Coexpression network: http://www.inetbio.org/yeastnet/downloadnetwork.php -> .txt files
 	#GO: http://www.yeastgenome.org/download-data/curation -> gene_association.sgd
-	#uniprot codes: http://www.uniprot.org/docs/yeast: (saveas)-> yeast.txt (gedit,calc)-> Uniprot_calc.txt
+	#uniprot codes: http://www.uniprot.org/docs/yeast: (clickdownload,saveas)-> yeast.txt (gedit,calc2columns)-> Uniprot_calc.txt
 
 
 x<-c("plyr","reshape","gsubfn","AUC","parallel","pbapply","ROCR","glmnet","xts","brglm","mvtnorm","doParallel","caret")
