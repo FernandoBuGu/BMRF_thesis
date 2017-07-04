@@ -14,7 +14,8 @@ lapply(x, require, character.only = TRUE)
 
 #Combine coexpression networks
 filenames <- list.files(path="path_to_txt_files", full.names=TRUE)
-library(plyr,reshape)
+library(plyr)
+library(reshape)
 import.list <- llply(filenames, read.table)
 data <- merge_recurse(import.list)
 data[3]<-NULL
