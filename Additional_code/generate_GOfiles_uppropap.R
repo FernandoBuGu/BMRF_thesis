@@ -1,3 +1,6 @@
+source("https://bioconductor.org/biocLite.R")
+biocLite("GO.db")
+
 #generate files uppropagate small
 go_file<-read.table("GO_general.txt",header=T)
 go_file <- go_file[c("label", "go", "term","evid")]
