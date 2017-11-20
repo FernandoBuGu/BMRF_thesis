@@ -1,0 +1,122 @@
+#Script to crease the co-expression file giben a correlation threshold.
+#The script is hard coded on the path where the files are saved. This can be change in {PATH}
+#The script is hard-codded for pearson correlation 0.1, but can be changed under {CHANGE}
+
+
+#this has to be done in PC because servers do not allow to install glment
+#source("http://bioconductor.org/biocLite.R")
+#biocLite("org.Gg.eg.db")
+#biocLite("getSYMBOL")
+library(org.Gg.eg.db)
+library(annotate)
+
+
+
+
+
+filenames <- list.files(path="/home/bueno002/pearsons/Gga", full.names=TRUE) #This is hard coded on the name of the directory
+gene_ids<-c()
+for(i in 1:length(filenames)){
+	file<-filenames[i]
+	gene_id<-substring(file, 29)   #{PATH} start to read in character 29, since there the GO id starts. Before, the path is writen
+	gene_ids<-append(gene_ids,gene_id)}
+
+
+library(org.Gg.eg.db)
+library(annotate)
+dataframes<-data.frame()
+for(i in 1:length(gene_ids)){
+	path<-paste("/home/bueno002/pearsons/Gga",gene_ids[i],sep="/")
+	file<-read.table(path)
+	file<-file$V1[file$V3>0.1] #{CHANGE}. ALSO TO NAME THE FILES, REPLACE (in the whole script) "01" BY THE PEARS CORR THERSHOLD OF INTERETS (I.E. "0.45")
+	f<-as.character(file)
+	sym<-data.frame(getSYMBOL(f, data="org.Gg.eg.db"))		#these are ENTREZID		
+	colnames(sym)<-"with"
+	this<-as.character(gene_ids[i])
+	this<-getSYMBOL(this, data="org.Gg.eg.db")		#these are ENTREZID		
+	sym$this<-this
+	dataframes<-rbind(dataframes,sym)
+}
+#
+	
+
+	#convert GeneIDs into Gene name. Also gene_ids[i]
+	#add a column that is name of gene_ids[i]
+
+dataframes2<-dataframes[dataframes$with != dataframes$this,]
+dim(dataframes2)
+dataframes3<-dataframes2[complete.cases(dataframes2), ]
+
+#
+
+DF1<-data.frame(unique(dataframes3$with))
+DF2<-rbind(DF1,unique(dataframes3$this))
+write.table(DF2,file="/home/bueno002/pearsons/DF_01",sep="\t", col.names = F, row.names = F, quote = F)
+write.table(dataframes3,file="/home/bueno002/pearsons/big_topless01.tsv",sep="\t", col.names = F, row.names = F, quote = F)
+###########################################################################################################
+#CONTINUE TO UPPROPAGATE
+
+#Generate GO file. easy WAY
+setwd("/home/bueno002/pearsons")
+GO = read.csv("goa_chicken.gaf",skip = 34,sep="\t", header=F, quote="")
+library(gsubfn)
+GO <- data.frame(GO$V3,GO$V5,GO$V7,GO$V9)
+colnames(GO) <- c("label","go", "evid", "term")  
+GO$label<-as.character(GO$label)
+library(stringr)
+DF<-read.table("DF_01")
+f<-as.data.frame(DF)
+GOm<-GO[GO$label %in% f$V1,]
+GOm<-unique(GOm)
+write.table(GOm,file="GO_general_01.txt",sep="\t", col.names = T, row.names = F, quote = T)
+
+
+
+#no-Validation
+source("uppropagate_3categories.r")
+go_file<-read.table("GO_general_01.txt",header=T)
+go_file <- go_file[c("label", "go", "term","evid")]
+go_file_NONvalid = go_file[!go_file$evid %in% c('EXP', 'IDA', 'IEP', 'IMP', 'IPI', 'IGI') | go_file$term != "P",]
+go_file_NONvalid$evid<-NULL
+go_file_NONvalid<-unique(go_file_NONvalid)
+write.table(go_file_NONvalid,file="to_uppropagated_NONvalid_01",sep="\t", col.names = F, row.names = F, quote = F)
+uppropagate(FILE="to_uppropagated_NONvalid_01")
+
+
+#validation
+source("uppropagate_3categories.r")
+go_file<-read.table("GO_general_01.txt",header=T)
+go_file <- go_file[c("label", "go", "term","evid")]
+go_file_valid = go_file[go_file$evid %in% c('EXP', 'IDA', 'IEP', 'IMP', 'IPI', 'IGI') & go_file$term == "P",]
+go_file_valid$evid<-NULL
+go_file_valid<-unique(go_file_valid)
+write.table(go_file_valid,file="to_uppropagated_valid_01",sep="\t", col.names = F, row.names = F, quote = F)
+uppropagate(FILE="to_uppropagated_valid_01")
+
+
+
+#set EES in the valid and nonEES in nonVALID; remove from NONvalid if appears in valid cbind; filter D
+valid<-read.table("to_uppropagated_valid_01.uppropagated", na.strings=c("", "NA"), sep="\t")
+NONvalid<-read.table("to_uppropagated_NONvalid_01.uppropagated", na.strings=c("", "NA"), sep="\t")
+valid<-valid[complete.cases(valid),]
+NONvalid<-NONvalid[complete.cases(NONvalid),]
+colnames(valid)<-c("label","go","term")
+colnames(NONvalid)<-c("label","go","term")
+valid$comb<-paste(valid$label,valid$go,sep="_")
+NONvalid$comb<-paste(NONvalid$label,NONvalid$go,sep="_")
+NONvalid<-NONvalid[!NONvalid$comb %in% valid$comb,]
+NONvalid$comb<-"NONvalid"
+valid$comb<-"valid"
+NONvalid$term<-NULL
+valid$term<-NULL
+valid<-rbind(valid,NONvalid)
+write.table(valid,file="rbind_upvalid_upNONvalid_01",sep="\t", col.names = F, row.names = F, quote = F)
+#
+
+
+
+
+
+
+
+

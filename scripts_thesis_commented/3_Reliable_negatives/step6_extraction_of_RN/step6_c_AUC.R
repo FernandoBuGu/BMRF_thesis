@@ -1,0 +1,260 @@
+#Script to compute Area Under the curve(AUC) using BMRF when the RN (Reliable negatives) are used as a negative class and the positives as a positive class 
+
+
+    #MSc thesis bioinfomratics WUR. Protein function prediction for poorly annotated species.
+    #Author: Fernando Bueno Gutierrez
+    #email1: fernando.buenogutierrez@wur.nl
+    #email2: fernando.bueno.gutie@gmail.com
+
+
+args<-commandArgs(T)
+library(Matrix);
+library(methods) #This is required when running Rscript
+library(plyr)
+library(foreach)
+library(doParallel)
+library(OptimalCutpoints)
+source("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/chickens035/bmrf_functions_now.R");
+source("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/chickens035/validation_functions_chickens_apE.R") # apE stands for "approach E". The functions "validation_functions_chickens" adapted to the purpose of this script. 
+
+GO<-as.numeric(args[1])	
+goes_pass_filter<-read.table("take_30goes")
+mygo<<-as.character(goes_pass_filter$V1[GO])
+#fixed parameters. 
+k=2; no_R=2; noit_GS=30
+
+#Parameters to choose
+minGOsize=1
+maxGOsize=1
+only_EES_BP=T
+subset=F
+all=T							#Choose [1,2,3,4,5,F], depending on folders: "From_gitHub/large_coex/additional_inputs_and_plots/fileS/" 
+reduce="F"		#amg,oa,epp,epn,enn   associationsof my go; other associations; edges of proteins of my go; other edges	
+RMO=0
+tissue=F
+
+
+#Prepare the objects to compute AUC				
+loaded<-return_L_m(subset=subset,minGOsize=minGOsize,maxGOsize=maxGOsize,only_EES_BP=only_EES_BP)
+data_mygo<-reduce_myGO(mygo,reduce,PR,RMO)
+
+
+kk=5
+MAX=args[2]
+typeA=args[3]
+
+
+return_AUC<-function(REP,kk,fol,MAX,typeA){
+#retursn the value of AUC for a given GO term, replicate and outer-fold. Outer-fold corresponds to the folds in the process of extraction of RN whereas inner fold correspodns to the folds once the set of RN has been extracted. Doing inner-loop in addition to outer-loop allows for a more balanced data. 
+
+
+    #In:
+        #REP:int, nº replicate
+        #kk: int, nº of the inner fold
+        #fol: int, number of the fold
+        #MAX: int, maximum nº of RN
+        #typeA: int, an int from 1 to 2. 1 stands for RN vs P. 2 stands for RN vs P whene the RN are extracted randomly
+
+    #Out: 
+        #AUC: numeric, value from 0 to 1 corresponding to AUC for a GO term the value is the mean of the inner folds. The value corresponds to one specific outer-fold ("fol"). 
+
+    AUCs_folds<-c()
+    no_rep=REP
+
+
+    #Ptrain
+    nameP_foldX=paste("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/k10_P_NP_fold",fol,"/",no_rep,"/P_",mygo,sep="")
+    Pfile<-read.table(nameP_foldX)
+    P_TR<-as.character(Pfile$V1) #(1,X): (input_label,expected_output)
+
+    #Ptest
+    GOfile<-read.table("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/go_valid.tsv" ,header=F)
+    all_genes_mygo<-GOfile$V1[GOfile$V2 == mygo]
+    P_ts<-as.character(all_genes_mygo[!all_genes_mygo %in% P_TR]) #(-1,1)
+
+    #RN train
+    nameRN_foldX=paste("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/RNs/maxRN",MAX,"/",fol,"/",no_rep,"/",mygo,sep="")
+    RNfile_foldX<-read.table(nameRN_foldX)
+    RN_foldX<-as.character(RNfile_foldX$V1)
+
+    gocomplete<-read.table("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/additional/go_complete.tsv")
+    P_non_valid<-gocomplete$V1[gocomplete$V2==mygo & gocomplete$V3=="NONvalid"]
+    RN_foldX<-RN_foldX[!RN_foldX %in% P_non_valid]
+    print("#RN is")
+    print(length(RN_foldX))
+
+    #If random choice
+    if(typeA==2){
+        unlabelled_mygo<-unique(gocomplete$V1[!gocomplete$V1 %in% all_genes_mygo & !gocomplete$V1 %in% P_non_valid])
+        RN_foldX<-as.character(sample(unlabelled_mygo,length(RN_foldX)))}
+
+
+
+    nameDATA<<-paste("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/step5a/",fol,"/",no_rep,"/",mygo,".RData",sep="")
+    load(nameDATA)
+    S<-rep(0,length(U_all))
+    names(S)<-U_all
+    source("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/chickens035/validation_functions_chickens.R")
+    U_all_FOLDS<-folds(S) 
+    FO<-seq(1,10)
+    FO<-FO[!FO %in% fol]
+    U_train<-U_all_FOLDS[c(FO)]
+    U_train<- unique(names(unlist(U_train, use.names=T)))
+
+    RN_foldX_TR<-RN_foldX[RN_foldX %in% U_train]
+
+
+    #RN test
+    RN_foldX_ts<-RN_foldX[!RN_foldX %in% RN_foldX_TR]
+    
+    RN_ts_foldX_forFOLDS<-rep(0,length(RN_foldX_ts))
+    names(RN_ts_foldX_forFOLDS)<-RN_foldX_ts
+    RN_ts_foldX_FOLDS<-folds(RN_ts_foldX_forFOLDS,kk)
+
+
+    #a vector with genes and their names (with -1s").... data_fold$dat[i]
+    #a smilar vector for the check ones ..... vect_tes
+    genes<-read.table("genes12424.tsv")
+    genes_keep<-genes$V1[genes$V1 %in% c(P_TR,P_ts,RN_foldX)]  #remove from analysis everything that is not P_TR, P_ts, RN
+    all_out<-genes$V[!genes$V %in% genes_keep]
+    
+
+    AUCs_within_5folds_of_foldX<-c()
+    for(i in 1:kk){
+        RN_foldX_ts<-names(unlist(RN_ts_foldX_FOLDS[i]))
+        print(length(unlist(RN_ts_foldX_FOLDS[i])))
+
+        RN_foldX_TR<-RN_foldX[!RN_foldX %in% RN_foldX_ts]
+        print("RN_TR")
+        print(length(RN_foldX_TR))
+        print("RN_ts")
+        print(length(RN_foldX_ts))
+
+
+        #define "vect"
+        vect<-as.data.frame(genes_keep)
+        colnames(vect)[1]<-"name"
+        vect$label<-2
+
+        
+
+
+        vect$label[vect$name %in% P_TR] = 1
+        vect$label[vect$name %in% P_ts] = -1
+        vect$label[vect$name %in% RN_foldX_TR] = 0
+        vect$label[vect$name %in% RN_foldX_ts] = -1#should be -1
+
+        #define "vect_tes"
+        vect_tes<-vect[vect$name %in%  RN_foldX_ts | vect$name %in% P_ts,]
+        vect_tes$label[vect_tes$name %in% RN_foldX_ts] = 0
+        vect_tes$label[vect_tes$name %in% P_ts] = 1
+
+        vect_numeric<-as.numeric(vect$label)
+        names(vect_numeric)<-as.character(vect$name)
+        vect_tes_numeric<-as.numeric(vect_tes$label)
+        names(vect_tes_numeric)<-as.character(vect_tes$name)
+
+
+        vect_numeric<-vect_numeric[!names(vect_numeric) %in% all_out]
+        vect_tes_numeric<-vect_tes_numeric[!names(vect_tes_numeric) %in% all_out]
+        D_M<-data_mygo$D_m[!rownames(data_mygo$D_m) %in% all_out,]
+        mygo_A<-data_mygo$A[!rownames(data_mygo$A) %in% all_out,]
+        mygo_A<-mygo_A[,!colnames(mygo_A) %in% all_out]
+        
+
+        vect_numeric<-vect_numeric[order(factor(names(vect_numeric)))]
+        D_M<-D_M[with(D_M, order(rownames(D_M))), ]
+        mygo_A<-mygo_A[with(mygo_A, order(rownames(mygo_A))), ]
+
+        print(table(vect_numeric))
+        
+        source("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/chickens035/bmrf_functions.R");
+        glmnetpred = try(glmnetDalpha(Y = vect_numeric, X = D_M, MAXVAR = (ncol(D_M)-1)), silent=FALSE)
+        if(class(glmnetpred)=='try-error'){
+            print("error in no_rep:")
+            print(no_rep)
+            print(kk)
+            next}
+        posteriors = try(BMRFz(mygo_A, vect_numeric, glmnetpred, burnin = noit_GS, niter = noit_GS), silent=FALSE)
+        if(class(posteriors)=='try-error'){
+            print("error in no_rep:")
+            print(no_rep)
+            print(kk)
+            next}
+        posteriors = round(calibrate(posteriors),2)
+        posteriors_test<-posteriors[names(posteriors) %in% names(vect_tes_numeric)]	
+        posteriors_test<-posteriors_test[order(names(posteriors_test))]
+        labels_test<-unlist(vect_tes_numeric)
+        labels_test<-labels_test[order(names(labels_test))]
+        library(AUC)	
+        print(table(labels_test))
+        AUC=try(auc(roc(posteriors_test,as.factor(labels_test))));
+        print(AUC)
+        if(class(AUC)=='try-error'){
+            print("error in no_rep:")
+            print(no_rep)
+            print(kk)
+            next}
+        AUCs_within_5folds_of_foldX<-append(AUCs_within_5folds_of_foldX,AUC)
+    }
+    AUC<-mean(AUCs_within_5folds_of_foldX,na.rm=T)
+    return(AUC)
+
+}
+
+start.time <- Sys.time()
+
+
+#Once the AUC of outer-loop has been computed we can compute final value of AUC per GO term and sd across inner-folds (sd across folds) and across outer-folds (sd across replicates).
+
+auc_final<-c() #Final value of AUC for each GO term. Average of teh outer-loops
+sd_across_folds<-c() #standard deviation across outer-loops.
+for(i in 1:4){
+    AUCS<-c()
+    for(j in 1:10){
+        AUC<-return_AUC(REP=i,kk,fol=j,MAX,typeA)
+        AUCS<-append(AUCS,AUC)
+    }
+
+    meanauc<-round(mean(AUCS,na.rm=T),3)
+    sdauc<-round(sd(AUCS,na.rm=T),3)
+    auc_final<-append(auc_final,meanauc)
+    sd_across_folds<-append(sd_across_folds,sdauc)
+}
+
+
+auc_final<-round(mean(auc_final,na.rm=T),3) #Final value of AUC for each GO term. Average of teh outer-loops
+sd_final<-round(sd(auc_final,na.rm=T),3) #standard deviation across outer-loops.
+sd_across_folds<-round(mean(sd_across_folds,na.rm=T),3) #standard deviation across inner loops
+
+
+
+column_name<-as.character(c("'go_number'","'meanAUC'","'sdAUC'"))
+    column<-as.character(c(mygo,meanauc,sdauc))
+
+if(typeA==1){
+    out.file <- paste("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/AUC_inner/AUC",MAX,"/","K10_k5_PU_BMRF",".txt", sep="")}
+if(typeA==2){
+        out.file <- paste("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/AUC_inner/AUC",MAX,"/","K10_k5_typeA2",".txt", sep="")}
+if(file.exists(out.file)){
+    DF<-data.frame(column)
+    DF<-t(DF)
+    write(DF, file=out.file,ncolumns=length(column),append=T)
+} else {
+    DF<-data.frame(column_name)
+    DF<-t(DF)
+    DF<-rbind(DF,column)
+    write.table(DF, file=out.file, col.names = F, row.names = F, quote = F, sep="\t")
+}
+
+
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print("time.taken")
+print(time.taken)
+
+
+
+
+
+

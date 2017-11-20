@@ -1,0 +1,54 @@
+#script to create the .sh files for step 3a. 
+
+
+    #MSc thesis bioinfomratics WUR. Protein function prediction for poorly annotated species.
+    #Author: Fernando Bueno Gutierrez
+    #email1: fernando.buenogutierrez@wur.nl
+    #email2: fernando.bueno.gutie@gmail.com
+
+
+
+#creates a file for each replicate-fold-combination
+a<-"#!/bin/bash"
+
+for(i in 1:4){ #for each replicate
+        for(f in 1:10){ #for each fold
+            name.file=paste("/mnt/nexenta/bueno002/part2_k10/step3_files/step3a",i,f,".sh",sep="_")
+
+            write.table(a, file=name.file, col.names = F, row.names = F, quote = F, sep="\t")
+            line1="#SBATCH --time=1440"
+            line2="#SBATCH --mem=5500"
+            line3="#SBATCH --ntasks=1"
+            line4="#SBATCH --nodes=1"
+            line5="#SBATCH --output=specI_%j.txt"
+            line6="#SBATCH --error=error_%j.txt"
+            line7="#SBATCH --job-name=spec"
+            line8="#SBATCH --partition=BIOINF_Std"
+            line9="#SBATCH --mail-type=END"
+            line10="#SBATCH --mail-user=fernando.buenogutierrez@wur.nl"
+            line11="#SBATCH --array=1-30"#array 1-30. for 30 GO terms considered.
+
+
+            line12="module load R/3.4.0"
+            line13="cd /home/WUR/bueno002/part2_k10/ "    
+            P<-paste("Rscript step3A_getNet.R"," ",i," ",f," ","${SLURM_ARRAY_TASK_ID}",sep="") #the script has 3 arguments: nºreplicate,nºfold,nºGO terms in the array
+            line14=as.character(P)
+
+
+            write(line1,file=name.file,append=T)
+            write(line2,file=name.file,append=T)
+            write(line3,file=name.file,append=T)
+            write(line4,file=name.file,append=T)
+            write(line5,file=name.file,append=T)
+            write(line6,file=name.file,append=T)
+            write(line7,file=name.file,append=T)
+            write(line8,file=name.file,append=T)
+            write(line9,file=name.file,append=T)
+            write(line10,file=name.file,append=T)
+            write(line11,file=name.file,append=T)
+            write(line12,file=name.file,append=T)
+            write(line13,file=name.file,append=T)
+            write(line14,file=name.file,append=T)
+}
+}
+

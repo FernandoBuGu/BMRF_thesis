@@ -1,0 +1,208 @@
+#Script to create a file of reliable negatoves (RN) for each GO term. 
+
+
+args<-commandArgs(T)
+library(plyr)
+library(reshape)
+library(AUC)	
+goes_pass_filter<<-read.table("take_30goes")
+
+
+create_RN_file<-function(init_tol=1,maxRN=5000,go_number,step=0.1,no_rep=1,fol=1){
+#creates a .txt file with the RN for the GO term considered. A maximum of "maxRN" RN will be extracted. 
+
+#In:
+    #init_tol: int, tolerance at start. value 1 corresponds to the default value in Figure 8 of thesis. 
+    #maxRN: maximum number of RN to extract
+    #step: int, difference in tolerance from one attempt of convergence to the next
+    #no_rep: int, nº replicate
+    #fol: int, number of fold
+    #go_number: int, index of the GO term from "take_30goes"
+
+#Out:
+    #DaFr: data frame, 1st column is the GO term, 2nd column are the genes that are RN for that GO term
+
+
+    myGO<<-as.character(goes_pass_filter$V1[go_number])
+    nameDATA<<-paste("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/step5a/",fol,"/",no_rep,"/",myGO,".RData",sep="")
+    load(nameDATA) 
+    
+
+
+    S<-rep(0,length(U_all))
+    names(S)<-U_all
+    source("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/chickens035/validation_functions_chickens.R")
+    U_all_FOLDS<-folds(S) 
+    FO<-seq(1,10)
+    FO<-FO[!FO %in% fol]
+    U_train<-U_all_FOLDS[c(FO)]
+    U_train<- unique(names(unlist(U_train, use.names=T)))
+
+    #U_test
+    U_test<-U_all[!U_all %in% U_train]
+
+    #complete test
+    P_and_U_test<-append(U_test,P_test)
+
+
+    #numeric features of P_train
+    P_train_feat<-features_genes[features_genes$gene %in% P_train,] 
+    P_train_feat<-P_train_feat[,2:dim(P_train_feat)[2]]
+    pr<-colMeans(P_train_feat,na.rm=T)
+
+    #numeric features of U_train
+    U_train_feat<-features_genes[features_genes$gene %in% U_train,]  
+    U_train_feat<-U_train_feat[,2:dim(U_train_feat)[2]]  
+    cm<-colMeans(U_train_feat,na.rm=T)
+
+    #identify useful features
+    train_feat_compare<-features_genes[features_genes$gene %in% U_train | features_genes$gene %in% P_train,]
+    train_feat_compare<-train_feat_compare[,2:dim(train_feat_compare)[2]]  
+    SD<-sapply(P_train_feat, function(x) sd(x,na.rm=T))  
+    compare<-pr-cm
+    differences<-sum(compare,na.rm=T)
+    print("differences")
+    print(differences)
+
+    #numeric features of U_all_and_hidden
+    U_all_and_hidden_feat<-features_genes[features_genes$gene %in% U_all_and_hidden,]  
+    U_all_and_hidden_feat<-U_all_and_hidden_feat[,2:dim(U_all_and_hidden_feat)[2]]  
+
+    #determine average_ED based on train set
+    euc.dist <- function(x1, x2) sqrt(sum((x1 - x2) ^ 2, na.rm=T))
+    average_ED<-c()
+    till<-as.numeric(dim(U_train_feat)[1])
+    for(i in 1:till){
+        ed=euc.dist(U_train_feat[i,],pr)
+        average_ED<-append(average_ED,ed)
+    }
+    average_ED<-mean(average_ED,na.rm=T)
+
+
+    #extract RN
+
+    tol=init_tol
+    finished=F
+    while(finished==F){
+        RN<-c()
+        print("tol")
+        print(tol)
+        for(i in 1:length(U_all_and_hidden)){
+            ed=euc.dist(U_all_and_hidden_feat[i,],pr)
+            if(ed>average_ED*tol){
+                RN<-append(RN,as.character(U_all_and_hidden[i]))}
+        }
+
+      
+
+        #AUC of RN. We call "1" to both extrme cases: positives and RN. The lower the # of elemenets in common bt the two vectors the better
+            #vector predictions
+        vec_pred<-data.frame(P_and_U_test)
+        vec_pred$V2<-1
+        vec_pred$V2[vec_pred$P_and_U_test %in% RN] = 0; 
+
+     
+
+        #vector true labels
+        vec_tru<-  data.frame(P_and_U_test)  
+        vec_tru$V2<-0
+        vec_tru$V2[vec_tru$P_and_U_test %in% P_test] = 1;
+
+        
+        library(AUC)
+
+        #AUC predictions
+        pred_see<-c()
+        true_see<-c()
+        for(i in 1:length(vec_pred$V2)){
+            if(vec_pred$V2[i]==0 | vec_tru$V2[i]==1){
+                pred_see<-append(pred_see,vec_pred$V2[i])
+                true_see<-append(true_see,vec_tru$V2[i])}
+        }
+                
+        AUCc=try(auc(roc(as.factor(pred_see),as.factor(true_see))));
+        if(tol==1){
+            print("AUC_tol_1")
+            print(AUCc)}
+        if(AUCc>0.85){
+            print("no_RN_AUC085")
+            print(length(RN))
+            print(tol)}
+        if(AUCc>0.9){
+            print("no_RN_AUC09")
+            print(length(RN))
+            print(tol)}
+        if(AUCc>0.95){
+            print("no_RN_AUC095")
+            print(length(RN))
+            print(tol)}
+
+        AUCc #0.57 for tol=1 and tol:0.75; 0.51 for tol=2; 0.46 for tol=3; 0.5: 0.46
+        if(length(RN)>maxRN){
+            tol=tol+step} else {finished=T}
+
+    }
+    print("lengthRN")
+    print(length(RN))
+    print("tol_convergence")
+    print(tol)
+
+
+        #random extrcation of RN
+        RN_random<-sample(U_all_and_hidden,length(RN))
+
+
+        vec_pred_r<-data.frame(P_and_U_test)
+        vec_pred_r$V2<-1
+        vec_pred_r$V2[vec_pred_r$P_and_U_test %in% RN_random] = 0; 
+
+        predR_see<-c()
+        true_see<-c()
+        for(i in 1:length(vec_pred_r$V2)){
+            if(vec_pred_r$V2[i]==0 | vec_tru$V2[i]==1){
+                predR_see<-append(predR_see,vec_pred_r$V2[i])
+                true_see<-append(true_see,vec_tru$V2[i])}
+        }
+
+
+        AUC_random=try(auc(roc(as.factor(vec_pred_r$V2),as.factor(vec_tru$V2))));
+        print("AUC_random")
+        print(AUC_random)
+        setwd("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/")
+
+        #create and write the RN file
+        DaFr<-data.frame(RN)
+        DaFr$GO<-as.character(myGO)  
+        colnames(DaFr)<-c("RN","GO")
+        file_name<-paste("maxRN",maxRN,sep="")
+        name_file_ed<-paste("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/RNs/",file_name,"/",fol,"/",no_rep,"/",myGO,sep="") 
+
+        write.table(DaFr, file=name_file_ed, col.names = F, row.names = F, quote = F, sep="\t")
+
+
+}
+
+
+
+start.time <- Sys.time()
+
+
+#Run the function given the .sh files
+sol<-create_RN_file(init_tol=0.5,maxRN=as.numeric(args[1]),go_number=as.numeric(args[4]),step=0.05,no_rep=as.numeric(args[2]),fol=as.numeric(args[3]))
+
+
+
+
+
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print("time.taken")
+print(time.taken)
+
+
+setwd("/lustre/nobackup/WUR/BIOINF/bueno002/home/WUR/bueno002/part2_k10/")
+
+
+#
+
+
